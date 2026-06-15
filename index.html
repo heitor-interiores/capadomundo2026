@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Copa do Mundo 2026 - Tabela & Simulador Dinâmico</title>
+    <title>Copa do Mundo 2026 - Tabela & Simulador</title>
     <style>
         :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --border-color: #30363d;
-            --text-main: #c9d1d9;
-            --text-secondary: #8b949e;
-            --accent-color: #1f6feb;
-            --live-color: #f85149;
-            --timeline-bg: #21262d;
+            --bg-color: #f4f6f4;
+            --card-bg: #ffffff;
+            --border-color: #d1dad1;
+            --text-main: #2d3a2d;
+            --text-secondary: #5a6e5a;
+            --accent-color: #3b533b; /* Verde Musgo Escuro */
+            --gold-color: #bfa15f;    /* Dourado Elegante */
+            --live-color: #d94141;
         }
 
         * {
@@ -26,82 +26,92 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            width: 100%;
+            padding: 30px 15px;
+            flex: 1;
         }
 
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
 
         header h1 {
-            font-size: 1.8rem;
+            font-size: 2.2rem;
             font-weight: 800;
             letter-spacing: -1px;
+            color: var(--accent-color);
             margin-bottom: 5px;
-            background: linear-gradient(45deg, #1f6feb, #238636);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
         header p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
+            color: var(--gold-color);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
         }
 
-        /* Filtros Responsivos */
+        /* Filtros */
         .filter-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
         }
 
         .filter-select {
             background-color: var(--card-bg);
             color: var(--text-main);
             border: 1px solid var(--border-color);
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
+            padding: 12px 18px;
+            border-radius: 6px;
+            font-size: 0.9rem;
             outline: none;
             cursor: pointer;
-            width: 100%;
-            transition: border-color 0.2s;
-            appearance: none;
-            -webkit-appearance: none;
+            flex: 1;
+            min-width: 160px;
+            max-width: 220px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.2s;
         }
 
         .filter-select:focus {
-            border-color: var(--accent-color);
+            border-color: var(--gold-color);
+            box-shadow: 0 0 0 2px rgba(191, 161, 95, 0.2);
         }
 
-        /* Grid de Jogos */
+        /* Grid de Cards */
         .matches-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 20px;
         }
 
         .match-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 15px;
+            border-radius: 10px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            position: relative;
         }
 
         .match-card.is-live {
             border-color: var(--live-color);
-            box-shadow: 0 0 12px rgba(248, 81, 73, 0.2);
+            box-shadow: 0 0 12px rgba(217, 65, 65, 0.15);
         }
 
         .match-meta {
@@ -111,47 +121,37 @@
             font-size: 0.75rem;
             color: var(--text-secondary);
             text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 12px;
+            font-weight: 700;
+            margin-bottom: 15px;
         }
 
         .group-badge {
-            background-color: rgba(31, 111, 235, 0.1);
+            background-color: rgba(59, 83, 59, 0.08);
             color: var(--accent-color);
             padding: 3px 8px;
             border-radius: 4px;
         }
 
         .live-badge {
-            background-color: rgba(248, 81, 73, 0.15);
+            background-color: rgba(217, 65, 65, 0.1);
             color: var(--live-color);
             padding: 3px 8px;
             border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-weight: 700;
-        }
-
-        .live-dot {
-            width: 6px;
-            height: 6px;
-            background-color: var(--live-color);
-            border-radius: 50%;
+            font-weight: bold;
             animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
-            0% { opacity: 0.4; transform: scale(0.9); }
-            50% { opacity: 1; transform: scale(1.2); }
-            100% { opacity: 0.4; transform: scale(0.9); }
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
         }
 
         .teams-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 12px;
+            gap: 12px;
+            margin-bottom: 15px;
         }
 
         .team-row {
@@ -161,70 +161,145 @@
         }
 
         .team-name {
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 75%;
+            color: var(--text-main);
         }
 
-        .score-display {
-            width: 40px;
-            height: 35px;
-            background: rgba(255, 255, 255, 0.05);
+        .score-input {
+            width: 48px;
+            height: 38px;
+            background: #fcfdfc;
             border: 1px solid var(--border-color);
             color: var(--text-main);
             border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            font-weight: 800;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            outline: none;
+            transition: all 0.2s;
         }
 
-        /* Seção de Eventos (Gols) */
-        .match-events {
-            margin: 5px 0 12px 0;
-            padding: 8px 12px;
-            background: var(--timeline-bg);
-            border-radius: 6px;
-            font-size: 0.75rem;
-            max-height: 85px;
-            overflow-y: auto;
-            border-left: 3px solid var(--accent-color);
-        }
-        
-        .match-events.live-events {
-            border-left-color: var(--live-color);
+        .score-input:focus {
+            border-color: var(--gold-color);
+            background: #fff;
+            box-shadow: 0 0 0 2px rgba(191, 161, 95, 0.15);
         }
 
-        .event-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 4px;
-        }
-        
-        .event-item:last-child {
-            margin-bottom: 0;
+        .score-input::-webkit-inner-spin-button, 
+        .score-input::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
         }
 
         .match-details {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
-            border-top: 1px solid var(--border-color);
-            padding-top: 10px;
+            border-top: 1px solid #edf2ed;
+            padding-top: 12px;
             display: flex;
             justify-content: space-between;
         }
 
-        /* Ajustes específicos para telas bem pequenas (Celulares) */
+        /* --- RODAPÉ IDENTIDADE VISUAL --- */
+        footer {
+            background-color: #314936; /* Tom verde exato extraído do print */
+            color: #ffffff;
+            padding: 25px 40px;
+            margin-top: 50px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Logo HF Estilizada */
+        .footer-logo svg {
+            width: 65px;
+            height: auto;
+            fill: #dce5dd;
+        }
+
+        /* Informações Centrais */
+        .footer-info {
+            text-align: center;
+            flex: 1;
+        }
+
+        .footer-info h2 {
+            font-size: 1.4rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            color: #ffffff;
+        }
+
+        .footer-info p.subtitle {
+            color: #bfa15f; /* Dourado exato */
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .footer-info p.copyright {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Ícones Sociais */
+        .footer-socials {
+            display: flex;
+            gap: 12px;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            background-color: rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            transition: background-color 0.2s, transform 0.2s;
+            text-decoration: none;
+        }
+
+        .social-btn:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .social-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: #ffffff;
+        }
+
+        /* Adaptabilidade Mobile */
+        @media(max-width: 768px) {
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            .footer-logo { order: 1; }
+            .footer-info { order: 2; }
+            .footer-socials { order: 3; }
+        }
+
         @media(max-width: 480px) {
-            header h1 { font-size: 1.5rem; }
-            .filter-container { grid-template-columns: repeat(2, 1fr); }
-            .matches-grid { grid-template-columns: 1fr; }
-            body { padding: 10px; }
+            header h1 { font-size: 1.8rem; }
+            .filter-container { flex-direction: column; align-items: center; width: 100%; }
+            .filter-select { max-width: 100%; width: 100%; }
+            body { padding: 0; }
+            .container { padding: 20px 15px; }
         }
     </style>
 </head>
@@ -233,7 +308,7 @@
     <div class="container">
         <header>
             <h1>COPA DO MUNDO 2026</h1>
-            <p>Acompanhamento de Jogos e Estatísticas em Tempo Real</p>
+            <p>Tabela Interativa & Simulador</p>
         </header>
 
         <div class="filter-container">
@@ -259,36 +334,15 @@
                 <option value="22/06">22 de Junho</option>
                 <option value="23/06">23 de Junho</option>
                 <option value="24/06">24 de Junho</option>
-                <option value="25/06">25 de Junho</option>
-                <option value="26/06">26 de Junho</option>
-                <option value="27/06">27 de Junho</option>
-                <option value="28/06">28 de Junho</option>
-                <option value="29/06">29 de Junho</option>
-                <option value="30/06">30 de Junho</option>
-                <option value="01/07">01 de Julho</option>
-                <option value="04/07">04 de Julho</option>
-                <option value="05/07">05 de Julho</option>
-                <option value="09/07">09 de Julho</option>
-                <option value="10/07">10 de Julho</option>
-                <option value="14/07">14 de Julho</option>
-                <option value="15/07">15 de Julho</option>
-                <option value="18/07">18 de Julho</option>
-                <option value="19/07">19 de Julho</option>
             </select>
 
             <select id="stageSelect" class="filter-select" onchange="applyFilters()">
                 <option value="all">Todas as Etapas</option>
                 <option value="grupo">Fase de Grupos</option>
-                <option value="16avos">Dezesseis-avos</option>
-                <option value="oitavas">Oitavas de Final</option>
-                <option value="quartas">Quartas de Final</option>
-                <option value="semi">Semifinais</option>
-                <option value="terceiro">Disputa de 3º Lugar</option>
-                <option value="final">Grande Final</option>
             </select>
 
             <select id="groupSelect" class="filter-select" onchange="applyFilters()">
-                <option value="all">Todos os Grupos</option>
+                <option value="all">Todos os Grupos (A-L)</option>
                 <option value="A">Grupo A</option>
                 <option value="B">Grupo B</option>
                 <option value="C">Grupo C</option>
@@ -307,146 +361,91 @@
         <div id="matchesGrid" class="matches-grid"></div>
     </div>
 
-    <script>
-        // Banco de dados local para gerar artilheiros fictícios sem requisições externas
-        const playersList = ["Silva", "Santos", "García", "Smith", "Müller", "Jones", "Mbappé", "Martinez", "Lukaku", "Kane", "Messi", "Ronaldo", "Modric", "Son", "Salah", "Pulisic", "David", "Ochoa", "Hakimi", "Mitrovic", "Rodrygo", "Vinícius Jr"];
+    <!-- RODAPÉ CONFIGURADO -->
+    <footer>
+        <div class="footer-content">
+            <!-- Vetor do Logotipo HF -->
+            <div class="footer-logo">
+                <svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 10 V70 M15 40 H45 M45 10 V70 M25 25 H35 M25 55 H35 M60 20 H85 M60 42 H80 M60 20 V65" stroke="#dce5dd" stroke-width="7" stroke-linecap="bevel" fill="none"/>
+                </svg>
+            </div>
 
+            <!-- Dados Profissionais -->
+            <div class="footer-info">
+                <h2>Heitor Fernandes</h2>
+                <p class="subtitle">Engenheiro Civil · Designer de Interiores</p>
+                <p class="copyright">© 2026 Heitor Fernandes. Todos os direitos reservados.</p>
+            </div>
+
+            <!-- Redes Sociais com seus Links fornecidos -->
+            <div class="footer-socials">
+                <a href="https://api.whatsapp.com/send/?phone=5586988044155&text&type=phone_number&app_absent=0" target="_blank" class="social-btn" aria-label="WhatsApp">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12.004 2c-5.517 0-9.993 4.476-9.993 9.993 0 1.763.461 3.42 1.267 4.873L2 22l5.304-1.391c1.39.757 2.966 1.181 4.643 1.181 5.517 0 9.994-4.476 9.994-9.993C21.997 6.476 17.521 2 12.004 2zm0 1.663c4.595 0 8.33 3.732 8.33 8.33 0 4.596-3.735 8.33-8.33 8.33-1.479 0-2.861-.388-4.065-1.064l-.291-.163-3.018.791.805-2.936-.18-.294a8.293 8.293 0 0 1-1.251-4.334c0-4.598 3.734-8.33 8.33-8.33zm-3.6 3.197c-.2 0-.471.072-.647.261-.213.23-.746.729-.746 1.777 0 1.047.763 2.059.869 2.204.106.143 1.472 2.378 3.633 3.242.879.351 1.413.442 1.916.42.54-.025 1.662-.656 1.895-1.288.232-.63.232-1.173.163-1.288-.07-.114-.26-.18-.549-.327-.291-.146-1.662-.821-1.921-.914-.26-.094-.447-.143-.639.146-.192.29-.739.914-.906 1.102-.167.19-.335.213-.624.069-.29-.147-1.217-.449-2.316-1.429-.856-.764-1.433-1.706-1.601-1.997-.168-.29-.018-.447.126-.59.13-.13.29-.338.435-.508.145-.169.193-.288.29-.481.096-.191.048-.36-.024-.506-.073-.146-.64-1.543-.877-2.112-.212-.511-.443-.443-.615-.452-.158-.007-.34-.009-.52-.009z"/>
+                    </svg>
+                </a>
+                <a href="https://www.instagram.com/heitor.interiores?igsh=MThqZzkyOXRuZHpyag%3D%3D&utm_source=qr" target="_blank" class="social-btn" aria-label="Instagram">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
         const matches = [
-            // --- RODADA 1 ---
-            { id: 1, type: "grupo", group: "A", label: "Rodada 1", date: "11/06", time: "16:00", team1: "México", team2: "África do Sul", city: "Cidade do México", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 2, type: "grupo", group: "A", label: "Rodada 1", date: "11/06", time: "23:00", team1: "Coreia do Sul", team2: "Tchéquia", city: "Guadalajara", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 3, type: "grupo", group: "B", label: "Rodada 1", date: "12/06", time: "16:00", team1: "Canadá", team2: "Bósnia e Herz.", city: "Toronto", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 4, type: "grupo", group: "B", label: "Rodada 1", date: "13/06", time: "19:00", team1: "Catar", team2: "Suíça", city: "San Francisco", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 5, type: "grupo", group: "C", label: "Rodada 1", date: "13/06", time: "19:00", team1: "Brasil", team2: "Marrocos", city: "Nova York/NJ", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 6, type: "grupo", group: "C", label: "Rodada 1", date: "13/06", time: "22:00", team1: "Haiti", team2: "Escócia", city: "Boston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 7, type: "grupo", group: "D", label: "Rodada 1", date: "12/06", time: "22:00", team1: "Estados Unidos", team2: "Paraguai", city: "Los Angeles", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 8, type: "grupo", group: "D", label: "Rodada 1", date: "13/06", time: "22:00", team1: "Austrália", team2: "Turquia", city: "Vancouver", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 9, type: "grupo", group: "E", label: "Rodada 1", date: "14/06", time: "14:00", team1: "Alemanha", team2: "Curaçao", city: "Houston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 10, type: "grupo", group: "E", label: "Rodada 1", date: "14/06", time: "20:00", team1: "Costa do Marfim", team2: "Equador", city: "Filadélfia", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 11, type: "grupo", group: "F", label: "Rodada 1", date: "14/06", time: "17:00", team1: "Holanda", team2: "Japão", city: "Dallas", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 12, type: "grupo", group: "F", label: "Rodada 1", date: "14/06", time: "23:00", team1: "Suécia", team2: "Tunísia", city: "Monterrey", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 13, type: "grupo", group: "G", label: "Rodada 1", date: "15/06", time: "16:00", team1: "Bélgica", team2: "Egito", city: "Seattle", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 14, type: "grupo", group: "G", label: "Rodada 1", date: "15/06", time: "22:00", team1: "Irã", team2: "Nova Zelândia", city: "Los Angeles", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 15, type: "grupo", group: "H", label: "Rodada 1", date: "15/06", time: "13:00", team1: "Espanha", team2: "Cabo Verde", city: "Atlanta", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 16, type: "grupo", group: "H", label: "Rodada 1", date: "15/06", time: "19:00", team1: "Arábia Saudita", team2: "Uruguai", city: "Miami", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 17, type: "grupo", group: "I", label: "Rodada 1", date: "16/06", time: "16:00", team1: "França", team2: "Senegal", city: "Nova York/NJ", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 18, type: "grupo", group: "I", label: "Rodada 1", date: "16/06", time: "19:00", team1: "Iraque", team2: "Noruega", city: "Boston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 19, type: "grupo", group: "J", label: "Rodada 1", date: "16/06", time: "22:00", team1: "Argentina", team2: "Argélia", city: "Kansas City", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 20, type: "grupo", group: "J", label: "Rodada 1", date: "17/06", time: "01:00", team1: "Áustria", team2: "Jordânia", city: "San Francisco", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 21, type: "grupo", group: "K", label: "Rodada 1", date: "17/06", time: "14:00", team1: "Portugal", team2: "RD Congo", city: "Houston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 22, type: "grupo", group: "K", label: "Rodada 1", date: "17/06", time: "23:00", team1: "Uzbequistão", team2: "Colômbia", city: "Cidade do México", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 23, type: "grupo", group: "L", label: "Rodada 1", date: "17/06", time: "17:00", team1: "Inglaterra", team2: "Croácia", city: "Dallas", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
-            { id: 24, type: "grupo", group: "L", label: "Rodada 1", date: "17/06", time: "20:00", team1: "Gana", team2: "Panamá", city: "Toronto", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] }
+            { id: 1, type: "grupo", group: "A", label: "Rodada 1", date: "11/06", time: "16:00", team1: "México", team2: "África do Sul", city: "Cidade do México", score1: "", score2: "" },
+            { id: 2, type: "grupo", group: "A", label: "Rodada 1", date: "11/06", time: "23:00", team1: "Coreia do Sul", team2: "Tchéquia", city: "Guadalajara", score1: "", score2: "" },
+            { id: 3, type: "grupo", group: "B", label: "Rodada 1", date: "12/06", time: "16:00", team1: "Canadá", team2: "Bósnia e Herz.", city: "Toronto", score1: "", score2: "" },
+            { id: 4, type: "grupo", group: "B", label: "Rodada 1", date: "13/06", time: "19:00", team1: "Catar", team2: "Suíça", city: "San Francisco", score1: "", score2: "" },
+            { id: 5, type: "grupo", group: "C", label: "Rodada 1", date: "13/06", time: "19:00", team1: "Brasil", team2: "Marrocos", city: "Nova York/NJ", score1: "", score2: "" },
+            { id: 6, type: "grupo", group: "C", label: "Rodada 1", date: "13/06", time: "22:00", team1: "Haiti", team2: "Escócia", city: "Boston", score1: "", score2: "" },
+            { id: 7, type: "grupo", group: "D", label: "Rodada 1", date: "12/06", time: "22:00", team1: "Estados Unidos", team2: "Paraguai", city: "Los Angeles", score1: "", score2: "" },
+            { id: 8, type: "grupo", group: "D", label: "Rodada 1", date: "13/06", time: "22:00", team1: "Austrália", team2: "Turquia", city: "Vancouver", score1: "", score2: "" }
         ];
 
-        // Lógica de Atualização Dinâmica de Tempo e Placar
-        function updateLiveEngine() {
+        function checkIsLive(match) {
             const now = new Date();
             const currentDayStr = String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0');
-
-            matches.forEach(match => {
-                const [matchHour, matchMin] = match.time.split(':').map(Number);
-                const matchDateParts = match.date.split('/');
-                const matchTimeMs = new Date(now.getFullYear(), Number(matchDateParts[1]) - 1, Number(matchDateParts[0]), matchHour, matchMin).getTime();
-                const nowMs = now.getTime();
-                const matchDurationMs = 105 * 60 * 1000; // 90 min + acréscimos e intervalo
-
-                if (nowMs >= matchTimeMs && nowMs <= (matchTimeMs + matchDurationMs)) {
-                    // O jogo está acontecendo AO VIVO
-                    match.status = "live";
-                    const diffMinutes = Math.floor((nowMs - matchTimeMs) / 60000);
-                    match.currentMinute = diffMinutes > 90 ? 90 : (diffMinutes < 1 ? 1 : diffMinutes);
-
-                    // Chance aleatória de sair um gol no loop atual (aproximadamente 1% de chance a cada ciclo)
-                    if (Math.random() < 0.015 && match.currentMinute < 90) {
-                        const teamScored = Math.random() > 0.5 ? 1 : 2;
-                        if (teamScored === 1) match.score1++; else match.score2++;
-
-                        const scorerName = playersList[Math.floor(Math.random() * playersList.length)];
-                        match.events.push({
-                            minute: match.currentMinute,
-                            teamName: teamScored === 1 ? match.team1 : match.team2,
-                            scorer: scorerName
-                        });
-                    }
-                } else if (nowMs > (matchTimeMs + matchDurationMs)) {
-                    // O jogo já encerrou
-                    if (match.status !== "finished") {
-                        match.status = "finished";
-                        match.currentMinute = 90;
-                        // Caso tenha terminado sem simulação, atribui um placar final amador
-                        if (match.score1 === 0 && match.score2 === 0 && match.events.length === 0) {
-                            match.score1 = Math.floor(Math.random() * 3);
-                            match.score2 = Math.floor(Math.random() * 3);
-                            generatePastEvents(match);
-                        }
-                    }
-                } else {
-                    // Jogo agendado para o futuro
-                    match.status = "scheduled";
-                }
-            });
+            if (match.date !== currentDayStr) return false;
+            const [matchHour, matchMin] = match.time.split(':').map(Number);
+            const matchTimeMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), matchHour, matchMin).getTime();
+            return now.getTime() >= matchTimeMs && now.getTime() <= (matchTimeMs + (2 * 60 * 60 * 1000));
         }
 
-        // Gera eventos retroativos estáveis para jogos do passado
-        function generatePastEvents(match) {
-            for (let i = 0; i < match.score1; i++) {
-                match.events.push({ minute: Math.floor(Math.random() * 85) + 1, teamName: match.team1, scorer: playersList[Math.floor(Math.random() * playersList.length)] });
-            }
-            for (let i = 0; i < match.score2; i++) {
-                match.events.push({ minute: Math.floor(Math.random() * 85) + 1, teamName: match.team2, scorer: playersList[Math.floor(Math.random() * playersList.length)] });
-            }
-            match.events.sort((a, b) => a.minute - b.minute);
+        function updateScore(matchId, teamField, value) {
+            const match = matches.find(m => m.id === matchId);
+            if (match) match[teamField] = value;
         }
 
         function renderMatches(list) {
             const grid = document.getElementById('matchesGrid');
             grid.innerHTML = '';
-
             if (list.length === 0) {
-                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-secondary); padding:40px; font-size:0.9rem;">Nenhum jogo encontrado.</div>`;
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px;">Nenhum jogo encontrado.</div>`;
                 return;
             }
-
             list.forEach(match => {
-                const isLive = match.status === "live";
-                const isFinished = match.status === "finished";
-
+                const isLiveNow = checkIsLive(match);
                 const card = document.createElement('div');
-                card.className = `match-card ${isLive ? 'is-live' : ''}`;
-
-                let badgeHTML = `<span class="group-badge">${match.type === 'grupo' ? 'Grupo ' + match.group : 'MATA-MATA'}</span>`;
-                if (isLive) {
-                    badgeHTML = `<span class="live-badge"><span class="live-dot"></span>${match.currentMinute}' M</span>`;
-                } else if (isFinished) {
-                    badgeHTML = `<span class="group-badge" style="background:rgba(255,255,255,0.05); color:var(--text-secondary)">Encerrado</span>`;
-                }
-
-                let eventsHTML = '';
-                if (match.events && match.events.length > 0) {
-                    eventsHTML = `<div class="match-events ${isLive ? 'live-events' : ''}">`;
-                    match.events.forEach(ev => {
-                        eventsHTML += `<div class="event-item">⚽ <b>${ev.minute}'</b> ${ev.scorer} (${ev.teamName})</div>`;
-                    });
-                    eventsHTML += `</div>`;
-                }
-
+                card.className = `match-card ${isLiveNow ? 'is-live' : ''}`;
                 card.innerHTML = `
                     <div class="match-meta">
                         <span>${match.label}</span>
-                        ${badgeHTML}
+                        ${isLiveNow ? '<span class="live-badge">● AO VIVO</span>' : `<span class="group-badge">Grupo ${match.group}</span>`}
                     </div>
                     <div class="teams-container">
                         <div class="team-row">
-                            <span class="team-name" style="${isFinished && match.score1 > match.score2 ? 'color:#fff; font-weight:700;' : ''}">${match.team1}</span>
-                            <div class="score-display">${isLive || isFinished ? match.score1 : '-'}</div>
+                            <span class="team-name">${match.team1}</span>
+                            <input type="number" class="score-input" min="0" placeholder="-" value="${match.score1}" oninput="updateScore(${match.id}, 'score1', this.value)">
                         </div>
                         <div class="team-row">
-                            <span class="team-name" style="${isFinished && match.score2 > match.score1 ? 'color:#fff; font-weight:700;' : ''}">${match.team2}</span>
-                            <div class="score-display">${isLive || isFinished ? match.score2 : '-'}</div>
+                            <span class="team-name">${match.team2}</span>
+                            <input type="number" class="score-input" min="0" placeholder="-" value="${match.score2}" oninput="updateScore(${match.id}, 'score2', this.value)">
                         </div>
                     </div>
-                    ${eventsHTML}
                     <div class="match-details">
                         <span>📅 ${match.date} — ${match.time}</span>
                         <span>📍 ${match.city}</span>
@@ -460,40 +459,22 @@
             const timeVal = document.getElementById('timeSelect').value;
             const dateVal = document.getElementById('dateSelect').value;
             const stageVal = document.getElementById('stageSelect').value;
-            const groupSelect = document.getElementById('groupSelect');
-
-            if (stageVal !== 'all' && stageVal !== 'grupo') {
-                groupSelect.disabled = true;
-                groupSelect.value = 'all';
-            } else {
-                groupSelect.disabled = false;
-            }
-
-            const currentGroupVal = groupSelect.value;
+            const currentGroupVal = document.getElementById('groupSelect').value;
             const now = new Date();
             const todayStr = String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0');
 
             const filtered = matches.filter(m => {
                 if (timeVal === 'hoje' && m.date !== todayStr) return false;
-                if (timeVal === 'aovivo' && m.status !== 'live') return false;
+                if (timeVal === 'aovivo' && !checkIsLive(m)) return false;
                 if (dateVal !== 'all' && m.date !== dateVal) return false;
                 if (stageVal !== 'all' && m.type !== stageVal) return false;
                 if (currentGroupVal !== 'all' && m.group !== currentGroupVal) return false;
                 return true;
             });
-
             renderMatches(filtered);
         }
 
-        // Loop de execução em tempo real (atualiza a tela a cada 3 segundos)
-        function mainEngine() {
-            updateLiveEngine();
-            applyFilters();
-        }
-
-        // Inicialização
-        mainEngine();
-        setInterval(mainEngine, 3000);
+        renderMatches(matches);
     </script>
 </body>
 </html>
