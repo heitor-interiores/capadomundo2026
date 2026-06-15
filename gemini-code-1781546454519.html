@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copa do Mundo 2026 - Tabela & Simulador Dinâmico</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --text-main: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent-color: #1f6feb;
+            --live-color: #f85149;
+            --timeline-bg: #21262d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px 15px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #1f6feb, #238636);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            flex: 1;
+            min-width: 140px;
+            max-width: 220px;
+            transition: border-color 0.2s;
+        }
+
+        .filter-select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .match-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .match-card.is-live {
+            border-color: var(--live-color);
+            box-shadow: 0 0 12px rgba(248, 81, 73, 0.2);
+        }
+
+        .match-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .group-badge {
+            background-color: rgba(31, 111, 235, 0.1);
+            color: var(--accent-color);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .live-badge {
+            background-color: rgba(248, 81, 73, 0.15);
+            color: var(--live-color);
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--live-color);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.4; transform: scale(0.9); }
+        }
+
+        .game-time {
+            font-weight: 700;
+            color: var(--live-color);
+        }
+
+        .teams-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .team-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70%;
+        }
+
+        .score-display {
+            width: 45px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        /* Linha do Tempo de Gols (Eventos) */
+        .match-events {
+            margin-top: 5px;
+            margin-bottom: 12px;
+            padding: 6px 10px;
+            background: var(--timeline-bg);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            max-height: 75px;
+            overflow-y: auto;
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .match-events.live-events {
+            border-left-color: var(--live-color);
+        }
+
+        .event-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+        
+        .event-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .match-details {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Responsividade Mobile Fluida */
+        @media(max-width: 580px) {
+            header h1 { font-size: 1.6rem; }
+            .filter-container { 
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                width: 100%; 
+            }
+            .filter-select { max-width: 100%; min-width: 0; width: 100%; }
+            .matches-grid { grid-template-columns: 1fr; }
+            body { padding: 15px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>COPA DO MUNDO 2026</h1>
+            <p>Fase de Grupos & Mata-Mata • Simulador em Tempo Real</p>
+        </header>
+
+        <div class="filter-container">
+            <select id="timeSelect" class="filter-select" onchange="applyFilters()">
+                <option value="all">Qualquer Momento</option>
+                <option value="hoje">Jogos de Hoje</option>
+                <option value="aovivo">🚨 Ao Vivo Agora</option>
+            </select>
+
+            <select id="dateSelect" class="filter-select" onchange="applyFilters()">
+                <option value="all">Filtrar por Dia</option>
+                <option value="11/06">11 de Junho</option>
+                <option value="12/06">12 de Junho</option>
+                <option value="13/06">13 de Junho</option>
+                <option value="14/06">14 de Junho</option>
+                <option value="15/06">15 de Junho</option>
+                <option value="16/06">16 de Junho</option>
+                <option value="17/06">17 de Junho</option>
+                <option value="18/06">18 de Junho</option>
+                <option value="19/06">19 de Junho</option>
+                <option value="20/06">20 de Junho</option>
+                <option value="21/06">21 de Junho</option>
+                <option value="22/06">22 de Junho</option>
+                <option value="23/06">23 de Junho</option>
+                <option value="24/06">24 de Junho</option>
+                <option value="25/06">25 de Junho</option>
+                <option value="26/06">26 de Junho</option>
+                <option value="27/06">27 de Junho</option>
+                <option value="28/06">28 de Junho</option>
+                <option value="29/06">29 de Junho</option>
+                <option value="30/06">30 de Junho</option>
+                <option value="01/07">01 de Julho</option>
+                <option value="04/07">04 de Julho</option>
+                <option value="05/07">05 de Julho</option>
+                <option value="09/07">09 de Julho</option>
+                <option value="10/07">10 de Julho</option>
+                <option value="14/07">14 de Julho</option>
+                <option value="15/07">15 de Julho</option>
+                <option value="18/07">18 de Julho</option>
+                <option value="19/07">19 de Julho</option>
+            </select>
+
+            <select id="stageSelect" class="filter-select" onchange="applyFilters()">
+                <option value="all">Todas as Etapas</option>
+                <option value="grupo">Fase de Grupos</option>
+                <option value="16avos">Dezesseis-avos</option>
+                <option value="oitavas">Oitavas de Final</option>
+                <option value="quartas">Quartas de Final</option>
+                <option value="semi">Semifinais</option>
+                <option value="terceiro">Disputa de 3º Lugar</option>
+                <option value="final">Grande Final</option>
+            </select>
+
+            <select id="groupSelect" class="filter-select" onchange="applyFilters()">
+                <option value="all">Todos os Grupos (A-L)</option>
+                <option value="A">Grupo A</option>
+                <option value="B">Grupo B</option>
+                <option value="C">Grupo C</option>
+                <option value="D">Grupo D</option>
+                <option value="E">Grupo E</option>
+                <option value="F">Grupo F</option>
+                <option value="G">Grupo G</option>
+                <option value="H">Grupo H</option>
+                <option value="I">Grupo I</option>
+                <option value="J">Grupo J</option>
+                <option value="K">Grupo K</option>
+                <option value="L">Grupo L</option>
+            </select>
+        </div>
+
+        <div id="matchesGrid" class="matches-grid"></div>
+    </div>
+
+    <script>
+        // Banco de dados de sobrenomes para gerar autores de gols fictícios de forma contextualizada
+        const soccerPlayers = ["Silva", "Santos", "García", "Smith", "Müller", "Jones", "Mbappé", "Martinez", "Lukaku", "Kane", "Messi", "Ronaldo", "Modric", "Son", "Salah", "Al-Dawsari", "Pulisic", "David", "Ochoa", "Hakimi", "En-Nesyri", "Mitrovic", "Valencia", "Kudus"];
+
+        const matches = [
+            // --- RODADA 1 ---
+            { id: 1, type: "grupo", group: "A", label: "Rodada 1", date: "11/06", time: "16:00", team1: "México", team2: "África do Sul", city: "Cidade do México", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 2, type: "grupo", group: "A", label: "Rodada 1", date: "11/06", time: "23:00", team1: "Coreia do Sul", team2: "Tchéquia", city: "Guadalajara", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 3, type: "grupo", group: "B", label: "Rodada 1", date: "12/06", time: "16:00", team1: "Canadá", team2: "Bósnia e Herz.", city: "Toronto", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 4, type: "grupo", group: "B", label: "Rodada 1", date: "13/06", time: "19:00", team1: "Catar", team2: "Suíça", city: "San Francisco", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 5, type: "grupo", group: "C", label: "Rodada 1", date: "13/06", time: "19:00", team1: "Brasil", team2: "Marrocos", city: "Nova York/NJ", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 6, type: "grupo", group: "C", label: "Rodada 1", date: "13/06", time: "22:00", team1: "Haiti", team2: "Escócia", city: "Boston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 7, type: "grupo", group: "D", label: "Rodada 1", date: "12/06", time: "22:00", team1: "Estados Unidos", team2: "Paraguai", city: "Los Angeles", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 8, type: "grupo", group: "D", label: "Rodada 1", date: "13/06", time: "22:00", team1: "Austrália", team2: "Turquia", city: "Vancouver", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 9, type: "grupo", group: "E", label: "Rodada 1", date: "14/06", time: "14:00", team1: "Alemanha", team2: "Curaçao", city: "Houston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 10, type: "grupo", group: "E", label: "Rodada 1", date: "14/06", time: "20:00", team1: "Costa do Marfim", team2: "Equador", city: "Filadélfia", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 11, type: "grupo", group: "F", label: "Rodada 1", date: "14/06", time: "17:00", team1: "Holanda", team2: "Japão", city: "Dallas", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 12, type: "grupo", group: "F", label: "Rodada 1", date: "14/06", time: "23:00", team1: "Suécia", team2: "Tunísia", city: "Monterrey", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 13, type: "grupo", group: "G", label: "Rodada 1", date: "15/06", time: "16:00", team1: "Bélgica", team2: "Egito", city: "Seattle", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 14, type: "grupo", group: "G", label: "Rodada 1", date: "15/06", time: "22:00", team1: "Irã", team2: "Nova Zelândia", city: "Los Angeles", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 15, type: "grupo", group: "H", label: "Rodada 1", date: "15/06", time: "13:00", team1: "Espanha", team2: "Cabo Verde", city: "Atlanta", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 16, type: "grupo", group: "H", label: "Rodada 1", date: "15/06", time: "19:00", team1: "Arábia Saudita", team2: "Uruguai", city: "Miami", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 17, type: "grupo", group: "I", label: "Rodada 1", date: "16/06", time: "16:00", team1: "França", team2: "Senegal", city: "Nova York/NJ", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 18, type: "grupo", group: "I", label: "Rodada 1", date: "16/06", time: "19:00", team1: "Iraque", team2: "Noruega", city: "Boston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 19, type: "grupo", group: "J", label: "Rodada 1", date: "16/06", time: "22:00", team1: "Argentina", team2: "Argélia", city: "Kansas City", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 20, type: "grupo", group: "J", label: "Rodada 1", date: "17/06", time: "01:00", team1: "Áustria", team2: "Jordânia", city: "San Francisco", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 21, type: "grupo", group: "K", label: "Rodada 1", date: "17/06", time: "14:00", team1: "Portugal", team2: "RD Congo", city: "Houston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 22, type: "grupo", group: "K", label: "Rodada 1", date: "17/06", time: "23:00", team1: "Uzbequistão", team2: "Colômbia", city: "Cidade do México", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 23, type: "grupo", group: "L", label: "Rodada 1", date: "17/06", time: "17:00", team1: "Inglaterra", team2: "Croácia", city: "Dallas", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 24, type: "grupo", group: "L", label: "Rodada 1", date: "17/06", time: "20:00", team1: "Gana", team2: "Panamá", city: "Toronto", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+
+            // --- RODADA 2 ---
+            { id: 25, type: "grupo", group: "A", label: "Rodada 2", date: "18/06", time: "13:00", team1: "Tchéquia", team2: "África do Sul", city: "Atlanta", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 26, type: "grupo", group: "A", label: "Rodada 2", date: "18/06", time: "22:00", team1: "México", team2: "Coreia do Sul", city: "Guadalajara", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 27, type: "grupo", group: "B", label: "Rodada 2", date: "18/06", time: "16:00", team1: "Suíça", team2: "Bósnia e Herz.", city: "Los Angeles", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 28, type: "grupo", group: "B", label: "Rodada 2", date: "18/06", time: "19:00", team1: "Canadá", team2: "Catar", city: "Vancouver", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 29, type: "grupo", group: "C", label: "Rodada 2", date: "19/06", time: "19:00", team1: "Escócia", team2: "Marrocos", city: "Boston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 30, type: "grupo", group: "C", label: "Rodada 2", date: "19/06", time: "21:30", team1: "Brasil", team2: "Haiti", city: "Filadélfia", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 31, type: "grupo", group: "D", label: "Rodada 2", date: "19/06", time: "16:00", team1: "Paraguai", team2: "Turquia", city: "Seattle", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 32, type: "grupo", group: "D", label: "Rodada 2", date: "19/06", time: "22:00", team1: "Estados Unidos", team2: "Austrália", city: "San Francisco", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 33, type: "grupo", group: "E", label: "Rodada 2", date: "20/06", time: "17:00", team1: "Equador", team2: "Curaçao", city: "Kansas City", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 34, type: "grupo", group: "E", label: "Rodada 2", date: "20/06", time: "20:00", team1: "Alemanha", team2: "Costa do Marfim", city: "Dallas", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 35, type: "grupo", group: "F", label: "Rodada 2", date: "20/06", time: "14:00", team1: "Holanda", team2: "Suécia", city: "Houston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 36, type: "grupo", group: "F", label: "Rodada 2", date: "21/06", time: "01:00", team1: "Tunisia", team2: "Japão", city: "Monterrey", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 37, type: "grupo", group: "G", label: "Rodada 2", date: "21/06", time: "16:00", team1: "Bélgica", team2: "Irã", city: "Los Angeles", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 38, type: "grupo", group: "G", label: "Rodada 2", date: "21/06", time: "22:00", team1: "Nova Zelândia", team2: "Egito", city: "Vancouver", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 39, type: "grupo", group: "H", label: "Rodada 2", date: "21/06", time: "13:00", team1: "Espanha", team2: "Arábia Saudita", city: "Atlanta", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 40, type: "grupo", group: "H", label: "Rodada 2", date: "21/06", time: "19:00", team1: "Uruguai", team2: "Cabo Verde", city: "Miami", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 41, type: "grupo", group: "I", label: "Rodada 2", date: "22/06", time: "18:00", team1: "França", team2: "Iraque", city: "Filadélfia", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 42, type: "grupo", group: "I", label: "Rodada 2", date: "21/06", time: "21:00", team1: "Noruega", team2: "Senegal", city: "Nova York/NJ", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 43, type: "grupo", group: "J", label: "Rodada 2", date: "22/06", time: "14:00", team1: "Argentina", team2: "Áustria", city: "Dallas", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 44, type: "grupo", group: "J", label: "Rodada 2", date: "23/06", time: "00:00", team1: "Jordânia", team2: "Argélia", city: "San Francisco", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 45, type: "grupo", group: "K", label: "Rodada 2", date: "23/06", time: "14:00", team1: "Portugal", team2: "Uzbequistão", city: "Houston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 46, type: "grupo", group: "K", label: "Rodada 2", date: "23/06", time: "23:00", team1: "Colômbia", team2: "RD Congo", city: "Guadalajara", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 47, type: "grupo", group: "L", label: "Rodada 2", date: "23/06", time: "17:00", team1: "Inglaterra", team2: "Gana", city: "Boston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 48, type: "grupo", group: "L", label: "Rodada 2", date: "23/06", time: "20:00", team1: "Panamá", team2: "Croácia", city: "Toronto", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+
+            // --- RODADA 3 ---
+            { id: 49, type: "grupo", group: "A", label: "Rodada 3", date: "24/06", time: "22:00", team1: "Tchéquia", team2: "México", city: "Cidade do México", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 50, type: "grupo", group: "A", label: "Rodada 3", date: "24/06", time: "22:00", team1: "África do Sul", team2: "Coreia do Sul", city: "Monterrey", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 51, type: "grupo", group: "B", label: "Rodada 3", date: "24/06", time: "16:00", team1: "Suíça", team2: "Canadá", city: "Vancouver", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 52, type: "grupo", group: "B", label: "Rodada 3", date: "24/06", time: "16:00", team1: "Bósnia e Herz.", team2: "Catar", city: "Seattle", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 53, type: "grupo", group: "C", label: "Rodada 3", date: "24/06", time: "19:00", team1: "Escócia", team2: "Brasil", city: "Miami", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 54, type: "grupo", group: "C", label: "Rodada 3", date: "24/06", time: "19:00", team1: "Marrocos", team2: "Haiti", city: "Atlanta", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 55, type: "grupo", group: "D", label: "Rodada 3", date: "25/06", time: "23:00", team1: "Turquia", team2: "Estados Unidos", city: "Los Angeles", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 56, type: "grupo", group: "D", label: "Rodada 3", date: "25/06", time: "23:00", team1: "Paraguai", team2: "Austrália", city: "San Francisco", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 57, type: "grupo", group: "E", label: "Rodada 3", date: "25/06", time: "16:00", team1: "Curaçao", team2: "Costa do Marfim", city: "Filadélfia", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 58, type: "grupo", group: "E", label: "Rodada 3", date: "25/06", time: "16:00", team1: "Equador", team2: "Alemanha", city: "East Rutherford", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 59, type: "grupo", group: "F", label: "Rodada 3", date: "25/06", time: "20:00", team1: "Japão", team2: "Suécia", city: "Dallas", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 60, type: "grupo", group: "F", label: "Rodada 3", date: "25/06", time: "20:00", team1: "Tunísia", team2: "Holanda", city: "Kansas City", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 61, type: "grupo", group: "G", label: "Rodada 3", date: "26/06", time: "19:00", team1: "Egito", team2: "Irã", city: "Miami", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 62, type: "grupo", group: "G", label: "Rodada 3", date: "26/06", time: "19:00", team1: "Nova Zelândia", team2: "Bélgica", city: "San Francisco", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 63, type: "grupo", group: "H", label: "Rodada 3", date: "26/06", time: "21:00", team1: "Cabo Verde", team2: "Arábia Saudita", city: "Houston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 64, type: "grupo", group: "H", label: "Rodada 3", date: "26/06", time: "21:00", team1: "Uruguai", team2: "Espanha", city: "Guadalajara", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 65, type: "grupo", group: "I", label: "Rodada 3", date: "26/06", time: "16:00", team1: "Noruega", team2: "França", city: "Boston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 66, type: "grupo", group: "I", label: "Rodada 3", date: "26/06", time: "16:00", team1: "Senegal", team2: "Iraque", city: "Toronto", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 67, type: "grupo", group: "J", label: "Rodada 3", date: "27/06", time: "23:00", team1: "Argélia", team2: "Áustria", city: "Kansas City", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 68, type: "grupo", group: "J", label: "Rodada 3", date: "27/06", time: "23:00", team1: "Jordânia", team2: "Argentina", city: "Dallas", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 70, type: "grupo", group: "K", label: "Rodada 3", date: "27/06", time: "20:30", team1: "Colômbia", team2: "Portugal", city: "Miami", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 71, type: "grupo", group: "K", label: "Rodada 3", date: "27/06", time: "20:30", team1: "RD Congo", team2: "Uzbequistão", city: "Atlanta", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 72, type: "grupo", group: "L", label: "Rodada 3", date: "27/06", time: "18:00", team1: "Panamá", team2: "Inglaterra", city: "Nova York/NJ", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 73, type: "grupo", group: "L", label: "Rodada 3", date: "27/06", time: "18:00", team1: "Croácia", team2: "Gana", city: "Filadélfia", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+
+            // --- DEZESSEIS-AVOS DE FINAL ---
+            { id: 74, type: "16avos", group: "Mata-Mata", label: "Jogo 74", date: "28/06", time: "17:00", team1: "1º Grupo A", team2: "3º Grupo C/D/E", city: "Los Angeles", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 75, type: "16avos", group: "Mata-Mata", label: "Jogo 75", date: "28/06", time: "21:00", team1: "1º Grupo B", team2: "2º Grupo F", city: "Boston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 76, type: "16avos", group: "Mata-Mata", label: "Jogo 76", date: "29/06", time: "15:00", team1: "2º Grupo A", team2: "2º Grupo B", city: "Monterrey", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 77, type: "16avos", group: "Mata-Mata", label: "Jogo 77", date: "29/06", time: "19:00", team1: "1º Grupo C", team2: "3º Grupo F/G/H", city: "Houston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 78, type: "16avos", group: "Mata-Mata", label: "Jogo 78", date: "30/06", time: "18:00", team1: "1º Grupo D", team2: "3º Grupo I/J/K", city: "Dallas", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 79, type: "16avos", group: "Mata-Mata", label: "Jogo 79", date: "01/07", time: "20:00", team1: "Brasil (Se Classif.)", team2: "2º Grupo E", city: "Atlanta", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+
+            // --- OITAVAS DE FINAL ---
+            { id: 80, type: "oitavas", group: "Mata-Mata", label: "Oitavas de Final", date: "04/07", time: "16:00", team1: "Vencedor J74", team2: "Vencedor J75", city: "Filadélfia", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 81, type: "oitavas", group: "Mata-Mata", label: "Oitavas de Final", date: "05/07", time: "20:00", team1: "Vencedor J76", team2: "Vencedor J77", city: "Nova York/NJ", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+
+            // --- QUARTAS DE FINAL ---
+            { id: 82, type: "quartas", group: "Mata-Mata", label: "Quartas de Final", date: "09/07", time: "18:00", team1: "Vencedor Oitavas 1", team2: "Vencedor Oitavas 2", city: "Boston", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 83, type: "quartas", group: "Mata-Mata", label: "Quartas de Final", date: "10/07", time: "21:00", team1: "Vencedor Oitavas 3", team2: "Vencedor Oitavas 4", city: "Los Angeles", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+
+            // --- SEMIFINAIS ---
+            { id: 84, type: "semi", group: "Mata-Mata", label: "Semifinal 1", date: "14/07", time: "22:00", team1: "Vencedor Quartas 1", team2: "Vencedor Quartas 2", city: "Dallas", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 85, type: "semi", group: "Mata-Mata", label: "Semifinal 2", date: "15/07", time: "22:00", team1: "Vencedor Quartas 3", team2: "Vencedor Quartas 4", city: "Atlanta", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+
+            // --- TERCEIRO LUGAR & FINAL ---
+            { id: 86, type: "terceiro", group: "Mata-Mata", label: "Disputa de 3º Lugar", date: "18/07", time: "18:00", team1: "Perdedor Semi 1", team2: "Perdedor Semi 2", city: "Miami", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] },
+            { id: 87, type: "final", group: "Mata-Mata", label: "Grande Final", date: "19/07", time: "19:00", team1: "Vencedor Semi 1", team2: "Vencedor Semi 2", city: "Nova York / NJ", score1: 0, score2: 0, currentMinute: 0, status: "scheduled", events: [] }
+        ];
+
+        // Lógica de Atualização Temporal e Simulação Dinâmica
+        function updateMatchStatuses() {
+            const now = new Date();
+            const currentDayStr = String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0');
+
+            matches.forEach(match => {
+                if (match.date !== currentDayStr) {
+                    // Se a data já passou no calendário da Copa, define como encerrado (se não simulado)
+                    const [mDay, mMonth] = match.date.split('/').map(Number);
+                    if (now.getMonth() + 1 > mMonth || (now.getMonth() + 1 === mMonth && now.getDate() > mDay)) {
+                        if (match.status !== "finished") {
+                            match.status = "finished";
+                            match.currentMinute = 90;
+                            // Gera um placar final amador caso esteja zerado para não ficar vazio
+                            if(match.score1 === 0 && match.score2 === 0) {
+                                match.score1 = Math.floor(Math.random() * 3);
+                                match.score2 = Math.floor(Math.random() * 3);
+                                generateMockEvents(match);
+                            }
+                        }
+                    }
+                    return;
+                }
+
+                // Cálculo do tempo para o dia de HOJE
+                const [matchHour, matchMin] = match.time.split(':').map(Number);
+                const matchTimeMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), matchHour, matchMin).getTime();
+                const nowMs = now.getTime();
+                const gameDurationMs = 105 * 60 * 1000; // 90 min + acréscimos e intervalo (aprox 1h45)
+
+                if (nowMs >= matchTimeMs && nowMs <= (matchTimeMs + gameDurationMs)) {
+                    match.status = "live";
+                    // Calcula o minuto atual baseado na hora real de início (ajustado para caber nos 90 min)
+                    const diffMinutes = Math.floor((nowMs - matchTimeMs) / 60000);
+                    match.currentMinute = diffMinutes > 90 ? 90 : (diffMinutes < 1 ? 1 : diffMinutes);
+                    
+                    // Probabilidade aleatória em tempo real de sair gol no loop atual (0.8% por atualização)
+                    if (Math.random() < 0.008 && match.currentMinute < 90) {
+                        const luckyTeam = Math.random() > 0.5 ? 1 : 2;
+                        if (luckyTeam === 1) match.score1++; else match.score2++;
+                        
+                        const scorer = soccerPlayers[Math.floor(Math.random() * soccerPlayers.length)];
+                        match.events.push({
+                            minute: match.currentMinute,
+                            team: luckyTeam === 1 ? match.team1 : match.team2,
+                            scorer: scorer
+                        });
+                    }
+                } else if (nowMs > (matchTimeMs + gameDurationMs)) {
+                    if (match.status !== "finished") {
+                        match.status = "finished";
+                        match.currentMinute = 90;
+                    }
+                } else {
+                    match.status = "scheduled";
+                    match.currentMinute = 0;
+                }
+            });
+        }
+
+        // Gera eventos retroativos para jogos que já terminaram
+        function generateMockEvents(match) {
+            match.events = [];
+            for(let i=0; i<match.score1; i++) {
+                match.events.push({ minute: Math.floor(Math.random() * 88) + 1, team: match.team1, scorer: soccerPlayers[Math.floor(Math.random() * soccerPlayers.length)] });
+            }
+            for(let i=0; i<match.score2; i++) {
+                match.events.push({ minute: Math.floor(Math.random() * 88) + 1, team: match.team2, scorer: soccerPlayers[Math.floor(Math.random() * soccerPlayers.length)] });
+            }
+            match.events.sort((a,b) => a.minute - b.minute);
+        }
+
+        function renderMatches(list) {
+            const grid = document.getElementById('matchesGrid');
+            grid.innerHTML = '';
+
+            if (list.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 40px; font-size: 0.9rem;">Nenhum jogo encontrado para os filtros selecionados.</div>`;
+                return;
+            }
+
+            list.forEach(match => {
+                const isLive = match.status === "live";
+                const isFinished = match.status === "finished";
+                
+                const card = document.createElement('div');
+                card.className = `match-card ${isLive ? 'is-live' : ''}`;
+                
+                // Renderização da linha do tempo/gols do jogo
+                let eventsHTML = '';
+                if (match.events.length > 0) {
+                    eventsHTML = `<div class="match-events ${isLive ? 'live-events' : ''}">`;
+                    match.events.forEach(ev => {
+                        eventsHTML += `<div class="event-item">⚽ <b>${ev.minute}'</b> ${ev.scorer} (${ev.team})</div>`;
+                    });
+                    eventsHTML += `</div>`;
+                } else if (isFinished || isLive) {
+                    eventsHTML = `<div class="match-events" style="color: var(--text-secondary); text-align:center; border-left:none; font-style:italic;">Sem gols anotados</div>`;
+                }
+
+                // Badge Dinâmica de Estado de Jogo
+                let badgeStatus = `<span class="group-badge">${match.type === 'grupo' ? 'Grupo ' + match.group : 'MATA-MATA'}</span>`;
+                if (isLive) {
+                    badgeStatus = `<span class="live-badge"><span class="live-dot"></span><span class="game-time">${match.currentMinute}' M</span></span>`;
+                } else if (isFinished) {
+                    badgeStatus = `<span class="group-badge" style="background: rgba(255,255,255,0.05); color: var(--text-secondary)">Encerrado</span>`;
+                }
+                
+                card.innerHTML = `
+                    <div class="match-meta">
+                        <span>${match.label}</span>
+                        ${badgeStatus}
+                    </div>
+                    <div class="teams-container">
+                        <div class="team-row">
+                            <span class="team-name" style="${isFinished && match.score1 > match.score2 ? 'font-weight:800; color:#fff;' : ''}">${match.team1}</span>
+                            <div class="score-display">${isFinished || isLive ? match.score1 : '-'}</div>
+                        </div>
+                        <div class="team-row">
+                            <span class="team-name" style="${isFinished && match.score2 > match.score1 ? 'font-weight:800; color:#fff;' : ''}">${match.team2}</span>
+                            <div class="score-display">${isFinished || isLive ? match.score2 : '-'}</div>
+                        </div>
+                    </div>
+                    ${eventsHTML}
+                    <div class="match-details">
+                        <span>📅 ${match.date} — ${match.time}</span>
+                        <span>📍 ${match.city}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function applyFilters() {
+            const timeVal = document.getElementById('timeSelect').value;
+            const dateVal = document.getElementById('dateSelect').value;
+            const stageVal = document.getElementById('stageSelect').value;
+            const groupSelect = document.getElementById('groupSelect');
+
+            if (stageVal !== 'all' && stageVal !== 'grupo') {
+                groupSelect.disabled = true;
+                groupSelect.value = 'all';
+            } else {
+                groupSelect.disabled = false;
+            }
+
+            const currentGroupVal = groupSelect.value;
+            const now = new Date();
+            const todayStr = String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0');
+
+            const filtered = matches.filter(m => {
+                if (timeVal === 'hoje' && m.date !== todayStr) return false;
+                if (timeVal === 'aovivo' && m.status !== 'live') return false;
+                if (dateVal !== 'all' && m.date !== dateVal) return false;
+                if (stageVal !== 'all' && m.type !== stageVal) return false;
+                if (currentGroupVal !== 'all' && m.group !== currentGroupVal) return false;
+
+                return true;
+            });
+
+            renderMatches(filtered);
+        }
+
+        // Loop de Automação Principal (Roda a cada 2 segundos atualizando placar e tempo de jogo)
+        function engineLoop() {
+            updateMatchStatuses();
+            applyFilters();
+        }
+
+        // Inicialização
+        engineLoop();
+        setInterval(engineLoop, 2000);
+    </script>
+</body>
+</html>
